@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanCode {
+  BASIC
+  ADVANCED
+  PRO
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  CANCELED
+}
+
+model User {
+  id           String         @id @default(uuid()) @db.Uuid
+  email        String         @unique
+  passwordHash String
+  createdAt    DateTime       @default(now())
+
+  tenant        Tenant?
+  subscriptions Subscription[]
+
+  @@index([createdAt])
+}
+
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  ownerId   String   @unique @db.Uuid
+  createdAt DateTime @default(now())
+
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  subscription Subscription?
+
+  @@index([createdAt])
+}
+
+model Plan {
+  id            String   @id @default(uuid()) @db.Uuid
+  code          PlanCode @unique
+  name          String
+  priceMonthly  Int
+  stripePriceId String   @unique
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                   String             @id @default(uuid()) @db.Uuid
+  userId               String             @unique @db.Uuid
+  tenantId             String             @unique @db.Uuid
+  planId               String             @db.Uuid
+  status               SubscriptionStatus @default(PENDING)
+  stripeCustomerId     String             @unique
+  stripeSubscriptionId String             @unique
+  createdAt            DateTime           @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([planId])
+  @@index([createdAt])
+}
