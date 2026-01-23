@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   }
 
   const creds = parseAuthCredentials(body);
-  if (!creds) return badRequest("Invalid email or password");
+  if (!creds) return badRequest("Invalid name, email or password");
 
   try {
     // Check for existing user to prevent duplicate registration
@@ -46,10 +46,11 @@ export async function POST(req: Request) {
     // Create user in database
     const user = await prisma.user.create({
       data: {
+        name: creds.name,
         email: creds.email,
         passwordHash,
       },
-      select: { id: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, createdAt: true },
     });
 
     // Generate JWT token

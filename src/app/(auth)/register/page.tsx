@@ -11,6 +11,7 @@ type ApiErr = { error: string };
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +54,7 @@ export default function RegisterPage() {
         method: "POST",
         credentials: "include",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
       const data = (await res.json()) as ApiOk<{ user: unknown }> | ApiErr;
       if (!res.ok) {
@@ -91,6 +92,17 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <Input
+            label="Name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isSubmitting}
+            placeholder="Your full name"
+          />
           <Input
             label="Email"
             name="email"
