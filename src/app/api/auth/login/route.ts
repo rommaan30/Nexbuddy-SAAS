@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { buildAuthCookie } from "@/lib/auth/cookies";
 import { signToken } from "@/lib/auth/jwt";
-import { parseAuthCredentials } from "@/lib/auth/validators";
+import { parseLoginCredentials } from "@/lib/auth/validators";
 import { badRequest, internalError, unauthorized } from "@/lib/http/errors";
 
 export async function POST(req: Request) {
@@ -29,14 +29,14 @@ export async function POST(req: Request) {
     return badRequest("Invalid JSON body");
   }
 
-  const creds = parseAuthCredentials(body);
+  const creds = parseLoginCredentials(body);
   if (!creds) return badRequest("Invalid email or password");
 
   try {
     // Find user by email
     const user = await prisma.user.findUnique({
       where: { email: creds.email },
-      select: { id: true, email: true, passwordHash: true, createdAt: true },
+      select: { id: true, name: true, email: true, passwordHash: true, createdAt: true },
     });
 
     // Return generic error to prevent email enumeration
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     return new Response(
       JSON.stringify({
         ok: true,
-        user: { id: user.id, email: user.email, createdAt: user.createdAt },
+        user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt },
       }),
       {
         status: 200,

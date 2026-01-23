@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Header } from "@/components/Header";
 
 type PlanCode = "BASIC" | "ADVANCED" | "PRO";
 type Plan = {
@@ -131,20 +132,7 @@ export default function PricingPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-14">
-        <header className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-zinc-900">
-            <Link href="/">NexBuddy</Link>
-          </div>
-          <div className="text-sm text-zinc-600">
-            {isLoggedIn ? (
-              "You’re signed in"
-            ) : (
-              <Link href="/login?redirect=%2Fpricing" className="underline">
-                Sign in
-              </Link>
-            )}
-          </div>
-        </header>
+        <Header />
 
         <section className="mt-12 space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">

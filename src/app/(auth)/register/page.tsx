@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [redirectTo, setRedirectTo] = useState("/pricing");
 
@@ -48,6 +49,7 @@ export default function RegisterPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/auth/register", {
@@ -61,7 +63,12 @@ export default function RegisterPage() {
         setError("error" in data ? data.error : "Registration failed");
         return;
       }
-      router.replace(redirectTo);
+      // Show success message
+      setSuccess(true);
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        router.replace(redirectTo);
+      }, 2000);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -100,7 +107,7 @@ export default function RegisterPage() {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || success}
             placeholder="Your full name"
           />
           <Input
@@ -111,7 +118,7 @@ export default function RegisterPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || success}
             placeholder="you@company.com"
           />
           <Input
@@ -122,17 +129,21 @@ export default function RegisterPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || success}
             placeholder="At least 8 characters"
           />
 
-          {error ? (
+          {success ? (
+            <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              ✓ Account created successfully! Redirecting...
+            </div>
+          ) : error ? (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </div>
           ) : null}
 
-          <Button type="submit" isLoading={isSubmitting}>
+          <Button type="submit" isLoading={isSubmitting} disabled={success}>
             Create account
           </Button>
         </form>

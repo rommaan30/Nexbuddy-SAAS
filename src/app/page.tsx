@@ -1,34 +1,11 @@
 import Link from "next/link";
+import { Header } from "@/components/Header";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-14">
-        <header className="flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold text-zinc-900">
-            NexBuddy
-          </Link>
-          <nav className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex h-10 items-center justify-center rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800"
-            >
-              Register
-            </Link>
-            <Link
-              href="/pricing"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
-            >
-              View Plans
-            </Link>
-          </nav>
-        </header>
+        <Header />
 
         <section className="mt-16 grid gap-10 lg:grid-cols-2 lg:items-center">
           <div className="space-y-6">
