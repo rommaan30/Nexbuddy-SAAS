@@ -98,17 +98,27 @@ export default function LoginPage() {
             disabled={isSubmitting}
             placeholder="you@company.com"
           />
-          <Input
-            label="Password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isSubmitting}
-            placeholder="Your password"
-          />
+          <div className="space-y-1">
+            <Input
+              label="Password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isSubmitting}
+              placeholder="Your password"
+            />
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-xs text-zinc-600 hover:text-zinc-900 underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          </div>
 
           {error ? (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

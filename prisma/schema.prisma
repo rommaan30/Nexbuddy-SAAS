@@ -34,8 +34,23 @@ model User {
 
   tenant        Tenant?
   subscriptions Subscription[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([createdAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Tenant {
