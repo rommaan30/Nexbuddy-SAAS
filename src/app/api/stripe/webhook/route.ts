@@ -24,7 +24,8 @@ function getStripeSignature(req: Request): string {
   return sig;
 }
 
-type PlanCode = "BASIC" | "ADVANCED" | "PRO";
+type PlanCode = "FREE" | "BASIC" | "ADVANCED" | "PRO";
+// Only paid plans should come through Stripe webhook
 const ALLOWED_PLAN_CODES = [
   "BASIC",
   "ADVANCED",
@@ -72,6 +73,14 @@ async function handleCheckoutSessionCompleted(
     return;
   }
   const planCode = planCodeRaw;
+
+  // Guard: FREE plan should never come through Stripe webhook
+  if (planCode === "FREE") {
+    console.error("Webhook: FREE plan should not use Stripe", {
+      sessionId: session.id,
+    });
+    return;
+  }
 
   const stripeCustomerId = sessionIdFromCustomer(session.customer);
   const stripeSubscriptionId = sessionIdFromSubscription(session.subscription);
@@ -132,12 +141,29 @@ async function handleCheckoutSessionCompleted(
       select: { id: true },
     }));
 
-  // Additional idempotency/uniqueness safety (schema has uniques on userId and tenantId).
+  // Find existing subscription by user (one subscription per tenant).
   const existingByUser = await prisma.subscription.findUnique({
     where: { userId: user.id },
-    select: { id: true },
+    select: { id: true, plan: { select: { code: true } } },
   });
-  if (existingByUser) return;
+
+  if (existingByUser) {
+    // Upgrade: existing FREE subscription → update to paid plan and Stripe IDs.
+    if (existingByUser.plan.code === "FREE") {
+      await prisma.subscription.update({
+        where: { id: existingByUser.id },
+        data: {
+          planId: plan.id,
+          stripeCustomerId,
+          stripeSubscriptionId,
+          status: "ACTIVE",
+        },
+      });
+      return;
+    }
+    // Already on a paid plan (e.g. webhook retry); idempotent no-op.
+    return;
+  }
 
   await prisma.subscription.create({
     data: {

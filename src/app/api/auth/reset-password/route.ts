@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { badRequest, internalError, unauthorized } from "@/lib/http/errors";
+import { badRequest, internalError } from "@/lib/http/errors";
 
 export async function POST(req: Request) {
   let body: unknown;

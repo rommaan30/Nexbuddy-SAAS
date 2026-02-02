@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,30 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum PlanCode {
-  BASIC
-  ADVANCED
-  PRO
-}
-
-enum SubscriptionStatus {
-  PENDING
-  ACTIVE
-  CANCELED
-}
-
 model User {
-  id           String         @id @default(uuid()) @db.Uuid
-  name         String?
-  email        String         @unique
-  passwordHash String
-  createdAt    DateTime       @default(now())
-
-  tenant        Tenant?
-  subscriptions Subscription[]
-  passwordResetTokens PasswordResetToken[]
+  id                         String               @id @default(uuid()) @db.Uuid
+  name                       String?
+  email                      String               @unique
+  passwordHash               String
+  emailVerified              Boolean              @default(false)
+  emailVerificationToken     String?              @unique
+  emailVerificationExpiresAt DateTime?
+  createdAt                  DateTime             @default(now())
+  passwordResetTokens        PasswordResetToken[]
+  subscriptions              Subscription?
+  tenant                     Tenant?
 
   @@index([createdAt])
+  @@index([emailVerificationToken])
+  @@index([emailVerificationExpiresAt])
 }
 
 model PasswordResetToken {
@@ -45,8 +31,7 @@ model PasswordResetToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
@@ -54,24 +39,23 @@ model PasswordResetToken {
 }
 
 model Tenant {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  ownerId   String   @unique @db.Uuid
-  createdAt DateTime @default(now())
-
-  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  ownerId      String        @unique @db.Uuid
+  createdAt    DateTime      @default(now())
   subscription Subscription?
+  owner        User          @relation(fields: [ownerId], references: [id])
 
   @@index([createdAt])
 }
 
 model Plan {
-  id            String   @id @default(uuid()) @db.Uuid
-  code          PlanCode @unique
+  id            String         @id @default(uuid()) @db.Uuid
+  code          PlanCode       @unique
   name          String
   priceMonthly  Int
-  stripePriceId String   @unique
-
+  currency      String         @default("INR") // ✅ NEW
+  stripePriceId String?        @unique
   subscriptions Subscription[]
 }
 
@@ -84,12 +68,24 @@ model Subscription {
   stripeCustomerId     String             @unique
   stripeSubscriptionId String             @unique
   createdAt            DateTime           @default(now())
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  plan                 Plan               @relation(fields: [planId], references: [id])
+  tenant               Tenant             @relation(fields: [tenantId], references: [id])
+  user                 User               @relation(fields: [userId], references: [id])
 
   @@index([status])
   @@index([planId])
   @@index([createdAt])
+}
+
+enum PlanCode {
+  FREE
+  BASIC
+  ADVANCED
+  PRO
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  CANCELED
 }
